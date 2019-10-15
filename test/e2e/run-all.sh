@@ -19,7 +19,7 @@ concurrently --kill-others \
   --success first \
   'yarn ganache:start' \
   'yarn dapp' \
-  'sleep 5 && mocha test/e2e/metamask-ui.spec'
+  'sleep 5 && mocha test/e2e/puppeteer.spec.js'
 
 concurrently --kill-others \
   --names 'ganache,dapp,e2e' \
@@ -81,4 +81,3 @@ export GANACHE_ARGS="${BASE_GANACHE_ARGS} --deterministic --account=0x53CB0AB522
     'yarn ganache:start' \
     'yarn dapp' \
     'sleep 5 && mocha test/e2e/threebox.spec'
-    

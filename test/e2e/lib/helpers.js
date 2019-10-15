@@ -40,15 +40,13 @@ module.exports = {
 
 
 async function prepareExtensionForTesting ({ responsive } = {}) {
-  let driver, extensionId, extensionUrl
-  const targetBrowser = process.env.SELENIUM_BROWSER
+  let browser, extensionId, extensionUrl
+  const targetBrowser = process.env.BROWSER
   switch (targetBrowser) {
     case 'chrome': {
       const extPath = path.resolve('dist/chrome')
-      driver = buildChromeWebDriver(extPath, { responsive })
-      await delay(largeDelayMs)
-      extensionId = await getExtensionIdChrome(driver)
-      extensionUrl = `chrome-extension://${extensionId}/home.html`
+      browser = await buildChromeWebDriver(extPath, { responsive })
+      extensionId = await getExtensionIdChrome(browser)
       break
     }
     case 'firefox': {
@@ -69,17 +67,21 @@ async function prepareExtensionForTesting ({ responsive } = {}) {
   // are closing any extraneous windows to reset us to a single window before continuing.
 
   // wait an extra long time so any slow popups can trigger
-  await delay(4 * largeDelayMs)
+  // await delay(4 * largeDelayMs)
 
-  const [tab1] = await driver.getAllWindowHandles()
-  await closeAllWindowHandlesExcept(driver, [tab1])
-  await driver.switchTo().window(tab1)
-  await driver.get(extensionUrl)
+  // const [tab1] = await driver.getAllWindowHandles()
+  // await closeAllWindowHandlesExcept(driver, [tab1])
+  // await driver.switchTo().window(tab1)
+  // await driver.get(extensionUrl)
 
-  return { driver, extensionId, extensionUrl }
+  const pages = await browser.pages()
+  await pages[0].close()
+  await pages[1].close()
+
+  return { browser, extensionId, extensionUrl }
 }
 
-async function setupFetchMocking (driver) {
+async function setupFetchMocking (browser) {
   // define fetchMocking script, to be evaluated in the browser
   function fetchMocking (fetchMockResponses) {
     window.origFetch = window.fetch.bind(window)
@@ -110,7 +112,7 @@ async function setupFetchMocking (driver) {
   // fetchMockResponses are parsed last minute to ensure that objects are uniquely instantiated
   const fetchMockResponsesJson = JSON.stringify(fetchMockResponses)
   // eval the fetchMocking script in the browser
-  await driver.executeScript(`(${fetchMocking})(${fetchMockResponsesJson})`)
+  await browser.executeScript(`(${fetchMocking})(${fetchMockResponsesJson})`) // TODO: Find ALT to executeScript
 }
 
 async function loadExtension (driver, extensionId) {
@@ -259,3 +261,4 @@ async function switchToWindowWithUrlThatMatches (driver, regexp, windowHandles) 
     return await switchToWindowWithUrlThatMatches(driver, regexp, windowHandles.slice(1))
   }
 }
+

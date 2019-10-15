@@ -17,7 +17,7 @@ const {
   waitUntilXWindowHandles,
   setupFetchMocking,
   prepareExtensionForTesting,
-} = require('./helpers')
+} = require('./lib/helpers')
 
 describe('MetaMask', function () {
   let extensionId
